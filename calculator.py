@@ -1,4 +1,7 @@
 # Calculation functions
+from operator import index
+
+
 def add(x, y):
     return x + y
 
@@ -39,6 +42,28 @@ def load_history():
         print("No history file found. Starting with an empty history.")
     return history
 
+#Clear history
+def clear_history(history):
+    history.clear()
+    #save the empty history to the file
+    save_history(history)
+    print("History cleared.")
+
+#Delete calculation
+def delete_calculation(history):
+    display_history(history)
+    if history:
+        try:
+            index = int(input("Enter the number of the calculation to delete: ")) - 1
+            if 0 <= index < len(history):
+                delete_calc = history.pop(index)
+                save_history(history) #save the updated history to the file
+                print(f"Deleted: {delete_calc}")
+            else:
+                print("Invalid index! Please enter a valid number.")
+        except ValueError:
+            print("Invalid input! Please enter a numeric value.")
+
 # Main function
 def main():
     # Load history from file
@@ -51,13 +76,15 @@ def main():
         print("3. Multiply")
         print("4. Divide")
         print("5. View History")
-        print("6. Exit")
+        print("6. Clear History")
+        print("7. Delete Calculation")
+        print("8. Exit")
 
         # Take input from the user
-        choice = input("Enter choice (1/2/3/4/5/6): ")
+        choice = input("Enter choice (1/2/3/4/5/6/7/8): ")
 
         # Check if the user wants to exit
-        if choice == '6':
+        if choice == '8':
             save_history(history)  # Save history to file before exiting
             print("Exiting the calculator. Goodbye!")
             break
@@ -65,6 +92,16 @@ def main():
         # View calculation history
         if choice == '5':
             display_history(history)
+            continue
+
+        #Clear history
+        if choice == "6":
+            clear_history(history)
+            continue
+
+        #Delete a specific calculation
+        if choice == "7":
+            delete_calculation(history)
             continue
 
         # Check if the input is valid
