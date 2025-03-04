@@ -1,7 +1,9 @@
-# Calculation functions
 from operator import index
+import tkinter as tk
+from tkinter import messagebox
 import csv
 
+# Calculation functions
 def add(x, y):
     return x + y
 
@@ -16,162 +18,91 @@ def divide(x, y):
         return "Error! Division by zero"
     return x / y
 
-# Display history function
-def display_history(history):
-    if not history:
-        print("No calculations in history.")
-    else:
-        print("\nCalculation History:")
-        for i, calc in enumerate(history, 1):
-            print(f"{i}. {calc}")
+#GUI Application
+class CalculatorApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Python Calculator")
+        self.history = []
 
-# Save history function
-def save_history(history):
-    with open("history.txt", "w") as file:
-        for calc in history:
-            file.write(calc + "\n")
+        #Input and result display
+        self.display = tk.Entry(root, font=("Arial", 20), justify="right", bd=10, insertwidth=4)
+        self.display.grid(row=0, column=0, columnspan=4)
 
-# Load history from history.txt
-def load_history():
-    history = []
-    try:
-        with open("history.txt", "r") as file:
-            for line in file:
-                history.append(line.strip())
-    except FileNotFoundError:
-        print("No history file found. Starting with an empty history.")
-    return history
+        #Buttons
+        buttons = [
+            '7', '8', '9', '/',
+            '4', '5', '6', '*',
+            '1', '2', '3', '-',
+            '0', '.', '=', '+',
+            'C', 'History', 'Export', 'Import'
+        ]
 
-#Clear history
-def clear_history(history):
-    history.clear()
-    #save the empty history to the file
-    save_history(history)
-    print("History cleared.")
+        row = 1
+        col = 0
+        for button in buttons:
+            action = lambda x=button: self.on_button_click(x)
+            tk.Button(root, text=button, font=("Arial", 15), width=5, height=2, command=action).grid(row=row, column=col)
+            col += 1
+            if col > 3:
+                col = 0
+                row += 1
 
-#Delete calculation
-def delete_calculation(history):
-    display_history(history)
-    if history:
-        try:
-            index = int(input("Enter the number of the calculation to delete: ")) - 1
-            if 0 <= index < len(history):
-                delete_calc = history.pop(index)
-                save_history(history) #save the updated history to the file
-                print(f"Deleted: {delete_calc}")
-            else:
-                print("Invalid index! Please enter a valid number.")
-        except ValueError:
-            print("Invalid input! Please enter a numeric value.")
-
-#Export history
-def export_history(history):
-    if not history:
-        print("No calculations to export.")
-        return
-
-    with open("history.csv", "w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Calculation"]) #Write header
-        for calc in history:
-            writer.writerow([calc]) #Write each calculation as a row
-    print("History exported to history.csv")
-
-#Import history
-def import_history(history):
-    try:
-        with open("history.csv", "r") as file:
-            reader = csv.reader(file)
-            next(reader) #Skip the header row
-            imported_calcs = [row[0] for row in reader] #Read all calculations
-            history.extend(imported_calcs) #Add imported calculation to history
-            save_history(history) #Save the updated calculations to history
-            print(f"Imported {len(imported_calcs)} calculations.")
-    except FileNotFoundError:
-        print("No history CSV file found.")
-
-# Main function
-def main():
-    # Load history from file
-    history = load_history()
-
-    while True:
-        print("\nSelect operation:")
-        print("1. Add")
-        print("2. Subtract")
-        print("3. Multiply")
-        print("4. Divide")
-        print("5. View History")
-        print("6. Clear History")
-        print("7. Delete Calculation")
-        print("8. Export history")
-        print("9. Import History")
-        print("10. Exit")
-
-        # Take input from the user
-        choice = input("Enter choice (1/2/3/4/5/6/7/8): ")
-
-        # Check if the user wants to exit
-        if choice == '10':
-            save_history(history)  # Save history to file before exiting
-            print("Exiting the calculator. Goodbye!")
-            break
-
-        # View calculation history
-        if choice == '5':
-            display_history(history)
-            continue
-
-        #Clear history
-        if choice == "6":
-            clear_history(history)
-            continue
-
-        #Delete a specific calculation
-        if choice == "7":
-            delete_calculation(history)
-            continue
-
-        #Export history to CSV
-        if choice == '8':
-            export_history(history)
-            continue
-
-        #Import history from CSV
-        if choice == '9':
-            import_history(history)
-            continue
-
-        # Check if the input is valid
-        if choice in ['1', '2', '3', '4']:
+    def on_button_click(self, value):
+        if value == '=':
             try:
-                num1 = float(input("Enter the first number: "))
-                num2 = float(input("Enter the second number: "))
-            except ValueError:
-                print("Invalid input! Please enter numeric values.")
-                continue
-
-            result = None
-            if choice == '1':
-                result = add(num1, num2)
-                operation = "+"
-            elif choice == '2':
-                result = subtract(num1, num2)
-                operation = "-"
-            elif choice == '3':
-                result = multiply(num1, num2)
-                operation = "*"
-            elif choice == '4':
-                result = divide(num1, num2)
-                operation = "/"
-
-            if result is not None:
-                calculation = f"{num1} {operation} {num2} = {result}"
-                print(calculation)
-                history.append(calculation)  # Add calculation to history
+                result = str(eval(self.display.get()))
+                self.history.append(f"{self.display.get()} = {result}")
+                self.display.delete(0, tk.END)
+                self.display.insert(0, result)
+            except Exception as e:
+                messagebox.showerror("Error", "Invalid input!")
+        elif value == 'C':
+            self.display.delete(0, tk.END)
+        elif value == 'History':
+            self.show_history() #display_history
+        elif value == 'Export':
+            self.export_history()
+        elif value == 'Import':
+            self.import_history()
         else:
-            print("Invalid input! Please enter a valid choice.")
+            self.display.insert(tk.END, value)
+
+    def show_history(self):
+        if not self.history:
+            messagebox.showinfo("History", "No calculation in history.")
+        else:
+            history_text = "\n".join(self.history)
+            messagebox.showinfo("History", history_text)
+
+    def export_history(self):
+        if not self.history:
+            messagebox.showinfo("Export",  "No calculations to export.")
+            return
+
+        with open("history.csv", "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Calculation"])  # Write header
+            for calc in self.history:
+                writer.writerow([calc])  # Write each calculation as a row
+        messagebox.showinfo("Export", "History exported to history.csv")
+
+    # Import history
+    def import_history(self):
+        try:
+            with open("history.csv", "r") as file:
+                reader = csv.reader(file)
+                next(reader)  # Skip the header row
+                imported_calcs = [row[0] for row in reader]  # Read all calculations
+                self.history.extend(imported_calcs)  # Add imported calculation to history
+
+                messagebox.showinfo("Import", f"Imported {len(imported_calcs)} calculations.")
+        except FileNotFoundError:
+            messagebox.showinfo("Import", "No history CSV file found.")
+
 
 # Run the program (ensures the program runs only when the script is executed directly)
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    app = CalculatorApp(root)
+    root.mainloop()
