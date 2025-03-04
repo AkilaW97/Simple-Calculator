@@ -1,6 +1,6 @@
 # Calculation functions
 from operator import index
-
+import csv
 
 def add(x, y):
     return x + y
@@ -64,6 +64,32 @@ def delete_calculation(history):
         except ValueError:
             print("Invalid input! Please enter a numeric value.")
 
+#Export history
+def export_history(history):
+    if not history:
+        print("No calculations to export.")
+        return
+
+    with open("history.csv", "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Calculation"]) #Write header
+        for calc in history:
+            writer.writerow([calc]) #Write each calculation as a row
+    print("History exported to history.csv")
+
+#Import history
+def import_history(history):
+    try:
+        with open("history.csv", "r") as file:
+            reader = csv.reader(file)
+            next(reader) #Skip the header row
+            imported_calcs = [row[0] for row in reader] #Read all calculations
+            history.extend(imported_calcs) #Add imported calculation to history
+            save_history(history) #Save the updated calculations to history
+            print(f"Imported {len(imported_calcs)} calculations.")
+    except FileNotFoundError:
+        print("No history CSV file found.")
+
 # Main function
 def main():
     # Load history from file
@@ -78,13 +104,15 @@ def main():
         print("5. View History")
         print("6. Clear History")
         print("7. Delete Calculation")
-        print("8. Exit")
+        print("8. Export history")
+        print("9. Import History")
+        print("10. Exit")
 
         # Take input from the user
         choice = input("Enter choice (1/2/3/4/5/6/7/8): ")
 
         # Check if the user wants to exit
-        if choice == '8':
+        if choice == '10':
             save_history(history)  # Save history to file before exiting
             print("Exiting the calculator. Goodbye!")
             break
@@ -102,6 +130,16 @@ def main():
         #Delete a specific calculation
         if choice == "7":
             delete_calculation(history)
+            continue
+
+        #Export history to CSV
+        if choice == '8':
+            export_history(history)
+            continue
+
+        #Import history from CSV
+        if choice == '9':
+            import_history(history)
             continue
 
         # Check if the input is valid
