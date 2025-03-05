@@ -1,7 +1,9 @@
+from idlelib.history import History
 from operator import index
 import tkinter as tk
 from tkinter import messagebox
 import csv
+import math
 
 # Calculation functions
 def add(x, y):
@@ -24,35 +26,44 @@ class CalculatorApp:
         self.root = root
         self.root.title("Python Calculator")
         self.history = []
+        # Track scientific mode
+        self.scientific_mode = False
 
         #Input and result display
         self.display = tk.Entry(root, font=("Arial", 20), justify="right", bd=10, insertwidth=4)
         self.display.grid(row=0, column=0, columnspan=4)
 
-        #Buttons
-        buttons = [
-            '7', '8', '9', '/',
-            '4', '5', '6', '*',
-            '1', '2', '3', '-',
-            '0', '.', '=', '+',
-            'C', 'History', 'Export', 'Import'
+        # Buttons for basic mode
+        basic_buttons = [
+            '7', '8', '9', '/', 'C', 'History',
+            '4', '5', '6', '*', '(', ')',
+            '1', '2', '3', '-', 'π', 'e',
+            '0', '.', '=', '+', '√', '^',
+            'sin', 'cos', 'tan', 'Export', 'Import', 'Mode'
         ]
 
+        #Create buttons
+        self.buttons = {}
         row = 1
         col = 0
-        for button in buttons:
+        for button in basic_buttons:
             action = lambda x=button: self.on_button_click(x)
-            tk.Button(root, text=button, font=("Arial", 15), width=5, height=2, command=action).grid(row=row, column=col)
+            self.buttons[button] = tk.Button(root, text=button, font=("Arial", 15), width=5, height=2, command=action)
+            self.buttons[button].grid(row=row, column=col)
             col += 1
-            if col > 3:
+            if col > 5:
                 col = 0
                 row += 1
+
+        #Hide scientific buttons initially
+        self.toggle_scientific_buttons()
 
     def on_button_click(self, value):
         if value == '=':
             try:
-                result = str(eval(self.display.get()))
-                self.history.append(f"{self.display.get()} = {result}")
+                expression = self.display.get()
+                result = str(eval(expression))
+                self.history.append(f"{expression} = {result}")
                 self.display.delete(0, tk.END)
                 self.display.insert(0, result)
             except Exception as e:
@@ -65,9 +76,37 @@ class CalculatorApp:
             self.export_history()
         elif value == 'Import':
             self.import_history()
+        elif value == 'Mode':
+            self.scientific_mode = not self.scientific_mode
+            self.toggle_scientific_buttons()
+        elif value == '√':
+            self.display.insert(tk.END, 'math.sqrt(')
+        elif value == '^':
+            self.display.insert(tk.END, '**')
+        elif value == 'π':
+            self.display.insert(tk.END, str(math.pi))
+        elif value == 'e':
+            self.display.insert(tk.END, str(math.e))
+        elif value in ['sin', 'cos', 'tan']:
+            self.display.insert(tk.END, f'math.{value}(')
         else:
             self.display.insert(tk.END, value)
 
+    def toggle_scientific_buttons(self):
+        # Show/hide scientific buttons based on mode
+        scientific_buttons = ['√', '^', 'sin', 'cos', 'tan', 'π', 'e']
+        for button in scientific_buttons:
+            if button in self.buttons:  # Check if the button exists
+                if self.scientific_mode:
+                    self.buttons[button].grid()
+                else:
+                    self.buttons[button].grid_remove()
+
+        #Update mode button text
+        self.buttons['Mode'].config(text="Basic" if self.scientific_mode
+        else "Scientific")
+
+    #Show history
     def show_history(self):
         if not self.history:
             messagebox.showinfo("History", "No calculation in history.")
@@ -75,6 +114,7 @@ class CalculatorApp:
             history_text = "\n".join(self.history)
             messagebox.showinfo("History", history_text)
 
+    #Export history
     def export_history(self):
         if not self.history:
             messagebox.showinfo("Export",  "No calculations to export.")
@@ -101,7 +141,7 @@ class CalculatorApp:
             messagebox.showinfo("Import", "No history CSV file found.")
 
 
-# Run the program (ensures the program runs only when the script is executed directly)
+# Run the program
 if __name__ == "__main__":
     root = tk.Tk()
     app = CalculatorApp(root)
