@@ -28,6 +28,22 @@ class CalculatorApp:
         self.history = []
         # Track scientific mode
         self.scientific_mode = False
+        self.dark_mode = False; #Track the dark mode
+
+        #Theme colors
+        self.light_theme = {
+            "bg": "#FFFFFF",
+            "fg": "#000000",
+            "button_bg": "#E0E0E0",
+            "button_fg": "#000000",
+        }
+
+        self.dark_theme = {
+            "bg": "#2E2E2E",
+            "fg": "#FFFFFF",
+            "button_bg": "#424242",
+            "button_fg": "#FFFFFF",
+        }
 
         #Input and result display
         self.display = tk.Entry(root, font=("Arial", 20), justify="right", bd=10, insertwidth=4)
@@ -39,7 +55,7 @@ class CalculatorApp:
             '4', '5', '6', '*', '(', ')',
             '1', '2', '3', '-', 'π', 'e',
             '0', '.', '=', '+', '√', '^',
-            'sin', 'cos', 'tan', 'Export', 'Import', 'Mode'
+            'sin', 'cos', 'tan', 'Export', 'Import', 'Mode', 'Theme', 'Help'
         ]
 
         #Create buttons
@@ -57,6 +73,8 @@ class CalculatorApp:
 
         #Hide scientific buttons initially
         self.toggle_scientific_buttons()
+        # Apply initial theme
+        self.apply_theme()
 
     def on_button_click(self, value):
         if value == '=':
@@ -79,6 +97,11 @@ class CalculatorApp:
         elif value == 'Mode':
             self.scientific_mode = not self.scientific_mode
             self.toggle_scientific_buttons()
+        elif value == 'Theme':
+            self.dark_mode = not self.dark_mode
+            self.apply_theme()
+        elif value == 'Help':
+            self.show_help()
         elif value == '√':
             self.display.insert(tk.END, 'math.sqrt(')
         elif value == '^':
@@ -92,6 +115,7 @@ class CalculatorApp:
         else:
             self.display.insert(tk.END, value)
 
+    #Toggle scientific button
     def toggle_scientific_buttons(self):
         # Show/hide scientific buttons based on mode
         scientific_buttons = ['√', '^', 'sin', 'cos', 'tan', 'π', 'e']
@@ -105,6 +129,15 @@ class CalculatorApp:
         #Update mode button text
         self.buttons['Mode'].config(text="Basic" if self.scientific_mode
         else "Scientific")
+
+    #Apply these
+    def apply_theme(self):
+        # Apply the current theme (light or dark)
+        theme = self.dark_theme if self.dark_mode else self.light_theme
+        self.root.config(bg=theme["bg"])
+        self.display.config(bg=theme["bg"], fg=theme["fg"], insertbackground=theme["fg"])
+        for button in self.buttons.values():
+            button.config(bg=theme["button_bg"], fg=theme["button_fg"])
 
     #Show history
     def show_history(self):
@@ -140,6 +173,26 @@ class CalculatorApp:
         except FileNotFoundError:
             messagebox.showinfo("Import", "No history CSV file found.")
 
+    #Show help
+    def show_help(self):
+        help_text = """
+        **Basic Mode:**
+        - Use numbers (0-9) and basic operations (+, -, *, /).
+        - Press '=' to calculate the result.
+        - Press 'C' to clear the display.
+
+        **Scientific Mode:**
+        - Toggle scientific mode using the 'Mode' button.
+        - Use advanced operations (√, ^, sin, cos, tan, π, e).
+
+        **History:**
+        - View past calculations using the 'History' button.
+        - Export/import history using the 'Export' and 'Import' buttons.
+
+        **Theme:**
+        - Toggle between light and dark themes using the 'Theme' button.
+        """
+        messagebox.showinfo("Help", help_text)
 
 # Run the program
 if __name__ == "__main__":
