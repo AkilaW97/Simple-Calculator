@@ -20,7 +20,7 @@ def divide(x, y):
         return "Error! Division by zero"
     return x / y
 
-#GUI Application
+# GUI Application
 class CalculatorApp:
     def __init__(self, root):
         self.root = root
@@ -28,9 +28,9 @@ class CalculatorApp:
         self.history = []
         # Track scientific mode
         self.scientific_mode = False
-        self.dark_mode = False; #Track the dark mode
+        self.dark_mode = False  # Track the dark mode
 
-        #Theme colors
+        # Theme colors
         self.light_theme = {
             "bg": "#FFFFFF",
             "fg": "#000000",
@@ -45,9 +45,9 @@ class CalculatorApp:
             "button_fg": "#FFFFFF",
         }
 
-        #Input and result display
+        # Input and result display
         self.display = tk.Entry(root, font=("Arial", 20), justify="right", bd=10, insertwidth=4)
-        self.display.grid(row=0, column=0, columnspan=4)
+        self.display.grid(row=0, column=0, columnspan=6)
 
         # Buttons for basic mode
         basic_buttons = [
@@ -55,10 +55,10 @@ class CalculatorApp:
             '4', '5', '6', '*', '(', ')',
             '1', '2', '3', '-', 'π', 'e',
             '0', '.', '=', '+', '√', '^',
-            'sin', 'cos', 'tan', 'Export', 'Import', 'Mode', 'Theme', 'Help'
+            'sin', 'cos', 'tan', 'Export', 'Import', 'Mode', 'Theme', 'Help', 'Convert'
         ]
 
-        #Create buttons
+        # Create buttons
         self.buttons = {}
         row = 1
         col = 0
@@ -71,7 +71,7 @@ class CalculatorApp:
                 col = 0
                 row += 1
 
-        #Hide scientific buttons initially
+        # Hide scientific buttons initially
         self.toggle_scientific_buttons()
         # Apply initial theme
         self.apply_theme()
@@ -89,7 +89,7 @@ class CalculatorApp:
         elif value == 'C':
             self.display.delete(0, tk.END)
         elif value == 'History':
-            self.show_history() #display_history
+            self.show_history()  # display_history
         elif value == 'Export':
             self.export_history()
         elif value == 'Import':
@@ -112,10 +112,12 @@ class CalculatorApp:
             self.display.insert(tk.END, str(math.e))
         elif value in ['sin', 'cos', 'tan']:
             self.display.insert(tk.END, f'math.{value}(')
+        elif value == 'Convert':
+            self.convert_temperature()
         else:
             self.display.insert(tk.END, value)
 
-    #Toggle scientific button
+    # Toggle scientific button
     def toggle_scientific_buttons(self):
         # Show/hide scientific buttons based on mode
         scientific_buttons = ['√', '^', 'sin', 'cos', 'tan', 'π', 'e']
@@ -126,11 +128,10 @@ class CalculatorApp:
                 else:
                     self.buttons[button].grid_remove()
 
-        #Update mode button text
-        self.buttons['Mode'].config(text="Basic" if self.scientific_mode
-        else "Scientific")
+        # Update mode button text
+        self.buttons['Mode'].config(text="Basic" if self.scientific_mode else "Scientific")
 
-    #Apply these
+    # Apply theme
     def apply_theme(self):
         # Apply the current theme (light or dark)
         theme = self.dark_theme if self.dark_mode else self.light_theme
@@ -139,7 +140,7 @@ class CalculatorApp:
         for button in self.buttons.values():
             button.config(bg=theme["button_bg"], fg=theme["button_fg"])
 
-    #Show history
+    # Show history
     def show_history(self):
         if not self.history:
             messagebox.showinfo("History", "No calculation in history.")
@@ -147,10 +148,10 @@ class CalculatorApp:
             history_text = "\n".join(self.history)
             messagebox.showinfo("History", history_text)
 
-    #Export history
+    # Export history
     def export_history(self):
         if not self.history:
-            messagebox.showinfo("Export",  "No calculations to export.")
+            messagebox.showinfo("Export", "No calculations to export.")
             return
 
         with open("history.csv", "w", newline="") as file:
@@ -173,7 +174,7 @@ class CalculatorApp:
         except FileNotFoundError:
             messagebox.showinfo("Import", "No history CSV file found.")
 
-    #Show help
+    # Show help
     def show_help(self):
         help_text = """
         **Basic Mode:**
@@ -191,8 +192,28 @@ class CalculatorApp:
 
         **Theme:**
         - Toggle between light and dark themes using the 'Theme' button.
+
+        **Convert:**
+        - Convert temperatures between Celsius and Fahrenheit.
         """
         messagebox.showinfo("Help", help_text)
+
+    # Convert temperature
+    def convert_temperature(self):
+        try:
+            temp = float(self.display.get())
+            if self.scientific_mode:
+                # Convert Celsius to Fahrenheit
+                converted_temp = (temp * 9 / 5) + 32
+                self.display.delete(0, tk.END)
+                self.display.insert(0, f"{temp}°C = {converted_temp}°F")
+            else:
+                # Convert Fahrenheit to Celsius
+                converted_temp = (temp - 32) * 5 / 9
+                self.display.delete(0, tk.END)
+                self.display.insert(0, f"{temp}°F = {converted_temp}°C")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid input! Please enter a numeric value.")
 
 # Run the program
 if __name__ == "__main__":
